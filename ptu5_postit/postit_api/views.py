@@ -67,3 +67,20 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
             return self.update(request, *args, **kwargs)
         else:
             raise ValidationError(_('You can not change the comment which is not yours.'))
+
+
+class PostLikeCreate(generics.CreateAPIView):
+    serializer_class = serializers.PostLikeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user=self.request.user
+        post=models.Post.objects.get(pk=self.kwargs['pk'])
+        return models.PostLike.objects.filter(user=user, post=post)
+
+    def perform_create(self, serializer):
+        if self.get_queryset().exists():
+            raise ValidationError(_("You cannot like a post more than once."))
+        user=self.request.user
+        post=models.Post.objects.get(pk=self.kwargs['pk'])
+        serializer.save(user=user, post=post)

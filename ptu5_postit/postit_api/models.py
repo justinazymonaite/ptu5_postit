@@ -44,3 +44,11 @@ class Comment(models.Model):
             user=self.user,
             created_at=self.created_at,
         )
+
+
+class PostLike(models.Model):
+    post = models.ForeignKey(Post, verbose_name=_("post"), on_delete=models.CASCADE, related_name="likes")
+    user = models.ForeignKey(User, verbose_name=_("user"), on_delete=models.CASCADE, related_name="post_likes")
+
+    def __str__(self) -> str:
+        return f"{self.user} likes {self.post}"
