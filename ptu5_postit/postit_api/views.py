@@ -1,9 +1,12 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
-from . import models, serializers
+from rest_framework import generics, permissions, mixins, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from . import models, serializers
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 
 class PostList(generics.ListCreateAPIView):
@@ -69,7 +72,7 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
             raise ValidationError(_('You can not change the comment which is not yours.'))
 
 
-class PostLikeCreate(generics.CreateAPIView):
+class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = serializers.PostLikeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -84,3 +87,16 @@ class PostLikeCreate(generics.CreateAPIView):
         user=self.request.user
         post=models.Post.objects.get(pk=self.kwargs['pk'])
         serializer.save(user=user, post=post)
+
+    def delete(self, request, *args, **kwargs):
+        if self.get_queryset().exists():
+            self.get_queryset().delete()
+            raise Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            raise ValidationError(_("You did not like this post to begin with."))
+
+
+class UserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+    permission_classes = [permissions.AllowAny]

@@ -12,6 +12,7 @@ class Post(models.Model):
         on_delete=models.CASCADE, 
         related_name="posts",
     )
+    image = models.ImageField(_('image'), upload_to='user_images/', blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     def __str__(self) -> str:
