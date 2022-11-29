@@ -100,3 +100,11 @@ class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = [permissions.AllowAny]
+
+    def delete(self, request, *args, **kwargs):
+        user=User.objects.filter(pk=request.user.pk)
+        if user.exists():
+            user.delete()
+            raise Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            raise ValidationError(_("You did not like this post to begin with."))
